@@ -1,0 +1,114 @@
+bundle:
+  name: azure-databricks-transit-platform
+
+workspace:
+  host: https://adb-7405613547805720.0.azuredatabricks.net
+
+variables:
+  catalog:
+    default: mta_rtransit
+  email_notifications:
+    default: saikrishnareddypoluri26@outlook.com
+  cluster_id:
+    default: 0417-222320-e1j7vfs2
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalog: mta_rtransit
+  prod:
+    mode: production
+    variables:
+      catalog: mta_rtransit
+    run_as:
+      user_name: saikrishnareddypoluri26@outlook.com
+
+resources:
+  jobs:
+    mta_continuous_api_poll:
+      name: "MTA Ingestion - Continuous API Poll"
+      continuous:
+        pause_status: PAUSED
+      tasks:
+        - task_key: api_poll
+          notebook_task:
+            notebook_path: ./notebooks/02_mta_gtfs_rt_to_cosmos.py
+          existing_cluster_id: ${var.cluster_id}
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}
+
+    mta_continuous_eh_streaming:
+      name: "MTA Streaming - Event Hubs to Bronze"
+      continuous:
+        pause_status: PAUSED
+      tasks:
+        - task_key: eh_to_bronze
+          notebook_task:
+            notebook_path: ./notebooks/04_streaming_eventhubs_to_bronze.py
+          existing_cluster_id: ${var.cluster_id}
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}
+
+    mta_daily_batch:
+      name: "MTA Transit Pipeline - Daily Batch"
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: bronze_cosmos_to_delta
+          notebook_task:
+            notebook_path: ./notebooks/03_batch_cosmos_to_delta.py
+          existing_cluster_id: ${var.cluster_id}
+        - task_key: ingest_route_ref
+          notebook_task:
+            notebook_path: ./notebooks/04a_ingest_mta_route_ref.py
+          existing_cluster_id: ${var.cluster_id}
+        - task_key: silver_fact_trip_delay
+          depends_on:
+            - task_key: bronze_cosmos_to_delta
+          notebook_task:
+            notebook_path: ./notebooks/05_silver_fact_trip_delay_event.py
+          existing_cluster_id: ${var.cluster_id}
+        - task_key: silver_dim_route
+          depends_on:
+            - task_key: ingest_route_ref
+          notebook_task:
+            notebook_path: ./notebooks/06_silver_dim_route.py
+          existing_cluster_id: ${var.cluster_id}
+        - task_key: gold_kpi_daily
+          depends_on:
+            - task_key: silver_fact_trip_delay
+            - task_key: silver_dim_route
+          notebook_task:
+            notebook_path: ./notebooks/07_gold_route_delay_kpi_daily.py
+          existing_cluster_id: ${var.cluster_id}
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}
+        on_duration_warning_threshold_exceeded:
+          - ${var.email_notifications}
+      health:
+        rules:
+          - metric: RUN_DURATION_SECONDS
+            op: GREATER_THAN
+            value: 1800
+
+    mta_health_monitor:
+      name: "MTA Pipeline Health Monitor"
+      schedule:
+        quartz_cron_expression: "0 0 */6 * * ?"
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: health_check
+          notebook_task:
+            notebook_path: ./notebooks/08_pipeline_health_monitor.py
+          existing_cluster_id: ${var.cluster_id}
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}

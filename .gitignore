@@ -1,0 +1,11 @@
+.databricks/
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+.env
+*.env
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
