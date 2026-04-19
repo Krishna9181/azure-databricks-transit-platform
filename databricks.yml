@@ -176,6 +176,9 @@ resources:
   pipelines:
     mta_dlt_medallion:
       name: "MTA Transit - DLT Medallion Pipeline"
+      permissions:
+        - level: CAN_MANAGE
+          user_name: saikrishnareddypoluri26@outlook.com
       catalog: ${var.catalog}
       target: dlt
       photon: true
