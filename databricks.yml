@@ -224,6 +224,7 @@ resources:
   dashboards:
     mta_transit_operations:
       display_name: "MTA Transit Pipeline Operations"
+      warehouse_id: e9d01412df81ab9c
       file_path: ./dashboards/mta_transit_pipeline_operations.lvdash.json
       permissions:
         - level: CAN_VIEW
