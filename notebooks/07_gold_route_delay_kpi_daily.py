@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 07 — Gold: `route_delay_kpi_daily`
@@ -122,7 +126,7 @@ print(f"View created: {catalog}.gold.route_delay_kpi_enriched")
 # MAGIC        trip_update_cnt,
 # MAGIC        avg_delay_sec,
 # MAGIC        p95_delay_sec
-# MAGIC FROM   {catalog}.gold.route_delay_kpi_enriched
+# MAGIC FROM   ${catalog}.gold.route_delay_kpi_enriched
 # MAGIC ORDER  BY kpi_date, trip_update_cnt DESC
 
 # COMMAND ----------
@@ -134,6 +138,6 @@ print(f"View created: {catalog}.gold.route_delay_kpi_enriched")
 # MAGIC        COUNT(DISTINCT route_id)   AS routes_active,
 # MAGIC        SUM(trip_update_cnt)       AS total_trip_updates,
 # MAGIC        ROUND(AVG(avg_delay_sec), 1) AS overall_avg_delay_sec
-# MAGIC FROM   {catalog}.gold.route_delay_kpi_daily
+# MAGIC FROM   ${catalog}.gold.route_delay_kpi_daily
 # MAGIC GROUP  BY kpi_date
 # MAGIC ORDER  BY kpi_date DESC

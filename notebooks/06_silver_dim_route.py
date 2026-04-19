@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 06 — Silver: `dim_route`
@@ -178,5 +182,5 @@ print(f"MERGE complete → {SILVER_TABLE} now has {cnt} routes")
 # DBTITLE 1,Verify silver dim_route
 # MAGIC %sql
 # MAGIC -- Verify dim_route
-# MAGIC SELECT * FROM {catalog}.silver.dim_route
+# MAGIC SELECT * FROM ${catalog}.silver.dim_route
 # MAGIC ORDER BY route_id

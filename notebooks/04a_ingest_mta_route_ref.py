@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 04a — Ingest MTA route reference (`routes.txt` → Bronze)
@@ -107,6 +111,6 @@ else:
 # MAGIC        get_json_object(payload, '$.route_short_name') AS short_name,
 # MAGIC        get_json_object(payload, '$.route_long_name')  AS long_name,
 # MAGIC        get_json_object(payload, '$.route_type')        AS gtfs_type
-# MAGIC FROM   {catalog}.bronze.dim_route_ref
-# MAGIC WHERE  snapshot_date = (SELECT MAX(snapshot_date) FROM {catalog}.bronze.dim_route_ref)
+# MAGIC FROM   ${catalog}.bronze.dim_route_ref
+# MAGIC WHERE  snapshot_date = (SELECT MAX(snapshot_date) FROM ${catalog}.bronze.dim_route_ref)
 # MAGIC ORDER  BY route_id

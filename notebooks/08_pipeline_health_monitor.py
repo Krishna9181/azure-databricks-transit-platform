@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 08 — Pipeline Health Monitor
@@ -147,15 +151,15 @@ else:
 # MAGIC -- Recent Delta operations across key tables
 # MAGIC SELECT 'bronze.gtfs_rt_events' AS table_name, version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows AS rows_written
-# MAGIC FROM (DESCRIBE HISTORY {catalog}.bronze.gtfs_rt_events LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY ${catalog}.bronze.gtfs_rt_events LIMIT 5)
 # MAGIC UNION ALL
 # MAGIC SELECT 'silver.fact_trip_delay_event', version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows
-# MAGIC FROM (DESCRIBE HISTORY {catalog}.silver.fact_trip_delay_event LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY ${catalog}.silver.fact_trip_delay_event LIMIT 5)
 # MAGIC UNION ALL
 # MAGIC SELECT 'gold.route_delay_kpi_daily', version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows
-# MAGIC FROM (DESCRIBE HISTORY {catalog}.gold.route_delay_kpi_daily LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY ${catalog}.gold.route_delay_kpi_daily LIMIT 5)
 # MAGIC ORDER BY timestamp DESC
 
 # COMMAND ----------

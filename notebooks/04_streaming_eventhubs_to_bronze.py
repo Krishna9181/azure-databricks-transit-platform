@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 04 — Streaming: Event Hubs → `bronze.eventhub_gtfs_raw`
 # MAGIC Consumes JSON bodies produced by **`01`** (same canonical document per message).
@@ -144,7 +148,7 @@ query.awaitTermination()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from {catalog}.bronze.eventhub_gtfs_raw
+# MAGIC select * from ${catalog}.bronze.eventhub_gtfs_raw
 
 # COMMAND ----------
 

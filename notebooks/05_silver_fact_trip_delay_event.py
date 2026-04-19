@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 05 — Silver: `fact_trip_delay_event`
@@ -142,6 +146,6 @@ print(f"MERGE complete → {SILVER_TABLE} now has {cnt} rows")
 # MAGIC        AVG(delay_sec)      AS avg_delay_sec,
 # MAGIC        MIN(event_ts)        AS earliest,
 # MAGIC        MAX(event_ts)        AS latest
-# MAGIC FROM   {catalog}.silver.fact_trip_delay_event
+# MAGIC FROM   ${catalog}.silver.fact_trip_delay_event
 # MAGIC GROUP  BY route_id
 # MAGIC ORDER  BY events DESC

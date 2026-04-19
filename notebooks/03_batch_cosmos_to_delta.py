@@ -3,6 +3,10 @@
 # -- Catalog parameter (set by DABs or default to dev) --
 dbutils.widgets.text("catalog", "mta_rtransit_dev")
 catalog = dbutils.widgets.get("catalog")
+print(f"Using catalog: {catalog}")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 03 — Scheduled batch: Cosmos DB → Delta (incremental via `_ts` watermark)
 # MAGIC
@@ -222,7 +226,7 @@ print("✓ App Insights telemetry flushed")
 # DBTITLE 1,Verify Bronze rows
 # MAGIC %sql
 # MAGIC -- Verify Bronze table
-# MAGIC SELECT * FROM {catalog}.bronze.gtfs_rt_events
+# MAGIC SELECT * FROM ${catalog}.bronze.gtfs_rt_events
 # MAGIC ORDER BY lake_ingest_ts DESC
 # MAGIC LIMIT 20
 
@@ -231,7 +235,7 @@ print("✓ App Insights telemetry flushed")
 # DBTITLE 1,Check watermark state
 # MAGIC %sql
 # MAGIC -- Check current watermark
-# MAGIC SELECT * FROM {catalog}.bronze._cosmos_watermarks
+# MAGIC SELECT * FROM ${catalog}.bronze._cosmos_watermarks
 
 # COMMAND ----------
 
