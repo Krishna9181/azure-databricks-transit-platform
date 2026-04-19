@@ -19,10 +19,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Set Terraform path
+        run: echo "DATABRICKS_TF_EXEC_PATH=$(which terraform)" >> $GITHUB_ENV
+
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
-        with:
-          version: 0.232.0
 
       - name: Validate bundle
         run: databricks bundle validate -t prod
