@@ -89,9 +89,9 @@ from datetime import timedelta
 w = WorkspaceClient()
 
 JOBS = {
-    182375670422584: "Continuous API Poll",
-    968403858233947: "Continuous EH Streaming",
-    46942749106650: "Daily Batch Pipeline",
+    896486395513847: "Continuous API Poll",
+    881210209845621: "Continuous EH Streaming",
+    623693707461938: "Daily Batch Pipeline",
 }
 
 cutoff_ms = int((now - timedelta(hours=24)).timestamp() * 1000)
