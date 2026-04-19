@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 05 — Silver: `fact_trip_delay_event`
@@ -16,9 +20,9 @@
 
 # DBTITLE 1,Config
 # ── Table references ──
-BRONZE_BATCH  = "mta_rtransit.bronze.gtfs_rt_events"
-BRONZE_EH     = "mta_rtransit.bronze.eventhub_gtfs_raw"
-SILVER_TABLE  = "mta_rtransit.silver.fact_trip_delay_event"
+BRONZE_BATCH  = f"{catalog}.bronze.gtfs_rt_events"
+BRONZE_EH     = f"{catalog}.bronze.eventhub_gtfs_raw"
+SILVER_TABLE  = f"{catalog}.silver.fact_trip_delay_event"
 
 # COMMAND ----------
 
@@ -138,6 +142,6 @@ print(f"MERGE complete → {SILVER_TABLE} now has {cnt} rows")
 # MAGIC        AVG(delay_sec)      AS avg_delay_sec,
 # MAGIC        MIN(event_ts)        AS earliest,
 # MAGIC        MAX(event_ts)        AS latest
-# MAGIC FROM   mta_rtransit.silver.fact_trip_delay_event
+# MAGIC FROM   {catalog}.silver.fact_trip_delay_event
 # MAGIC GROUP  BY route_id
 # MAGIC ORDER  BY events DESC

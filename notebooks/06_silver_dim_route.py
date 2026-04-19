@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 06 — Silver: `dim_route`
@@ -16,9 +20,9 @@
 
 # DBTITLE 1,Config
 # ── Table references ──
-BRONZE_REF    = "mta_rtransit.bronze.dim_route_ref"
-BRONZE_FACT   = "mta_rtransit.bronze.gtfs_rt_events"
-SILVER_TABLE  = "mta_rtransit.silver.dim_route"
+BRONZE_REF    = f"{catalog}.bronze.dim_route_ref"
+BRONZE_FACT   = f"{catalog}.bronze.gtfs_rt_events"
+SILVER_TABLE  = f"{catalog}.silver.dim_route"
 
 # COMMAND ----------
 
@@ -174,5 +178,5 @@ print(f"MERGE complete → {SILVER_TABLE} now has {cnt} routes")
 # DBTITLE 1,Verify silver dim_route
 # MAGIC %sql
 # MAGIC -- Verify dim_route
-# MAGIC SELECT * FROM mta_rtransit.silver.dim_route
+# MAGIC SELECT * FROM {catalog}.silver.dim_route
 # MAGIC ORDER BY route_id

@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # MAGIC %md
 # MAGIC ## 03 — Scheduled batch: Cosmos DB → Delta (incremental via `_ts` watermark)
 # MAGIC
@@ -29,10 +33,10 @@ COSMOS_KEY      = dbutils.secrets.get("mta-kv", "cosmos-key")
 COSMOS_DATABASE  = "gtfs"
 COSMOS_CONTAINER = "gtfs_rt_batch"
 
-BRONZE_TABLE = "mta_rtransit.bronze.gtfs_rt_events"
+BRONZE_TABLE = f"{catalog}.bronze.gtfs_rt_events"
 
 # Delta table to persist the incremental watermark across runs
-WATERMARK_TABLE = "mta_rtransit.bronze._cosmos_watermarks"
+WATERMARK_TABLE = f"{catalog}.bronze._cosmos_watermarks"
 WATERMARK_KEY   = "gtfs_rt_batch"   # row identifier in the watermark table
 
 # COMMAND ----------
@@ -218,7 +222,7 @@ print("✓ App Insights telemetry flushed")
 # DBTITLE 1,Verify Bronze rows
 # MAGIC %sql
 # MAGIC -- Verify Bronze table
-# MAGIC SELECT * FROM mta_rtransit.bronze.gtfs_rt_events
+# MAGIC SELECT * FROM {catalog}.bronze.gtfs_rt_events
 # MAGIC ORDER BY lake_ingest_ts DESC
 # MAGIC LIMIT 20
 
@@ -227,7 +231,7 @@ print("✓ App Insights telemetry flushed")
 # DBTITLE 1,Check watermark state
 # MAGIC %sql
 # MAGIC -- Check current watermark
-# MAGIC SELECT * FROM mta_rtransit.bronze._cosmos_watermarks
+# MAGIC SELECT * FROM {catalog}.bronze._cosmos_watermarks
 
 # COMMAND ----------
 

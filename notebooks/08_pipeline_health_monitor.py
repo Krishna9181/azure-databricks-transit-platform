@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 08 — Pipeline Health Monitor
@@ -19,7 +23,7 @@ TABLES = {
     "silver.fact_trip_delay_event": {"ts_col": "event_ts", "stale_hours": 24},
     "gold.route_delay_kpi_daily": {"ts_col": "kpi_date", "stale_hours": 48},
 }
-CATALOG = "mta_rtransit"
+CATALOG = catalog  # Uses widget parameter
 
 # COMMAND ----------
 
@@ -110,7 +114,7 @@ for job_id, job_name in JOBS.items():
 # COMMAND ----------
 
 # DBTITLE 1,Silver data quality
-quality = spark.sql("""
+quality = spark.sql(f"""
     SELECT 
         COUNT(*) AS total_events,
         SUM(CASE WHEN is_valid THEN 1 ELSE 0 END) AS valid_events,
@@ -119,7 +123,7 @@ quality = spark.sql("""
         COUNT(DISTINCT route_id) AS distinct_routes,
         SUM(CASE WHEN delay_sec IS NOT NULL THEN 1 ELSE 0 END) AS has_delay_cnt,
         SUM(CASE WHEN event_ts IS NULL THEN 1 ELSE 0 END) AS null_event_ts
-    FROM mta_rtransit.silver.fact_trip_delay_event
+    FROM {catalog}.silver.fact_trip_delay_event
 """).collect()[0]
 
 print("Silver Fact Data Quality:")
@@ -143,15 +147,15 @@ else:
 # MAGIC -- Recent Delta operations across key tables
 # MAGIC SELECT 'bronze.gtfs_rt_events' AS table_name, version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows AS rows_written
-# MAGIC FROM (DESCRIBE HISTORY mta_rtransit.bronze.gtfs_rt_events LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY {catalog}.bronze.gtfs_rt_events LIMIT 5)
 # MAGIC UNION ALL
 # MAGIC SELECT 'silver.fact_trip_delay_event', version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows
-# MAGIC FROM (DESCRIBE HISTORY mta_rtransit.silver.fact_trip_delay_event LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY {catalog}.silver.fact_trip_delay_event LIMIT 5)
 # MAGIC UNION ALL
 # MAGIC SELECT 'gold.route_delay_kpi_daily', version, timestamp, operation, 
 # MAGIC        operationMetrics.numOutputRows
-# MAGIC FROM (DESCRIBE HISTORY mta_rtransit.gold.route_delay_kpi_daily LIMIT 5)
+# MAGIC FROM (DESCRIBE HISTORY {catalog}.gold.route_delay_kpi_daily LIMIT 5)
 # MAGIC ORDER BY timestamp DESC
 
 # COMMAND ----------

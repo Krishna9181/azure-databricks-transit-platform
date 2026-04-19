@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 07 — Gold: `route_delay_kpi_daily`
@@ -23,9 +27,9 @@
 
 # DBTITLE 1,Config
 # ── Table references ──
-SILVER_FACT  = "mta_rtransit.silver.fact_trip_delay_event"
-SILVER_DIM   = "mta_rtransit.silver.dim_route"
-GOLD_TABLE   = "mta_rtransit.gold.route_delay_kpi_daily"
+SILVER_FACT  = f"{catalog}.silver.fact_trip_delay_event"
+SILVER_DIM   = f"{catalog}.silver.dim_route"
+GOLD_TABLE   = f"{catalog}.gold.route_delay_kpi_daily"
 
 # COMMAND ----------
 
@@ -88,7 +92,7 @@ print(f"MERGE complete → {GOLD_TABLE} now has {cnt} rows")
 # ── 4. Create enriched view for BI / dashboards ──
 #   Joins gold KPIs with dim_route for human-readable route names
 spark.sql(f"""
-    CREATE OR REPLACE VIEW mta_rtransit.gold.route_delay_kpi_enriched AS
+    CREATE OR REPLACE VIEW {catalog}.gold.route_delay_kpi_enriched AS
     SELECT
         k.kpi_date,
         k.route_id,
@@ -104,7 +108,7 @@ spark.sql(f"""
        AND d.effective_to IS NULL   -- current version of the route
 """)
 
-print("View created: mta_rtransit.gold.route_delay_kpi_enriched")
+print(f"View created: {catalog}.gold.route_delay_kpi_enriched")
 
 # COMMAND ----------
 
@@ -118,7 +122,7 @@ print("View created: mta_rtransit.gold.route_delay_kpi_enriched")
 # MAGIC        trip_update_cnt,
 # MAGIC        avg_delay_sec,
 # MAGIC        p95_delay_sec
-# MAGIC FROM   mta_rtransit.gold.route_delay_kpi_enriched
+# MAGIC FROM   {catalog}.gold.route_delay_kpi_enriched
 # MAGIC ORDER  BY kpi_date, trip_update_cnt DESC
 
 # COMMAND ----------
@@ -130,6 +134,6 @@ print("View created: mta_rtransit.gold.route_delay_kpi_enriched")
 # MAGIC        COUNT(DISTINCT route_id)   AS routes_active,
 # MAGIC        SUM(trip_update_cnt)       AS total_trip_updates,
 # MAGIC        ROUND(AVG(avg_delay_sec), 1) AS overall_avg_delay_sec
-# MAGIC FROM   mta_rtransit.gold.route_delay_kpi_daily
+# MAGIC FROM   {catalog}.gold.route_delay_kpi_daily
 # MAGIC GROUP  BY kpi_date
 # MAGIC ORDER  BY kpi_date DESC

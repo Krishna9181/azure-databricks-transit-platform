@@ -49,6 +49,8 @@ resources:
         - task_key: eh_to_bronze
           notebook_task:
             notebook_path: ./notebooks/04_streaming_eventhubs_to_bronze.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
       email_notifications:
         on_failure:
@@ -64,22 +66,30 @@ resources:
         - task_key: bronze_cosmos_to_delta
           notebook_task:
             notebook_path: ./notebooks/03_batch_cosmos_to_delta.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
         - task_key: ingest_route_ref
           notebook_task:
             notebook_path: ./notebooks/04a_ingest_mta_route_ref.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
         - task_key: silver_fact_trip_delay
           depends_on:
             - task_key: bronze_cosmos_to_delta
           notebook_task:
             notebook_path: ./notebooks/05_silver_fact_trip_delay_event.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
         - task_key: silver_dim_route
           depends_on:
             - task_key: ingest_route_ref
           notebook_task:
             notebook_path: ./notebooks/06_silver_dim_route.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
         - task_key: gold_kpi_daily
           depends_on:
@@ -87,6 +97,8 @@ resources:
             - task_key: silver_dim_route
           notebook_task:
             notebook_path: ./notebooks/07_gold_route_delay_kpi_daily.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
       email_notifications:
         on_failure:
@@ -109,6 +121,8 @@ resources:
         - task_key: health_check
           notebook_task:
             notebook_path: ./notebooks/08_pipeline_health_monitor.py
+            base_parameters:
+              catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
       email_notifications:
         on_failure:

@@ -9,7 +9,7 @@
 --      <storage_account>    → your storage account name (no .dfs.core.windows.net)
 -- 2. In Unity Catalog: register an **external location** that covers this prefix
 --      (Catalog admin → External data → External locations), e.g.:
---      abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/
+--      abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/
 --    Grant **CREATE EXTERNAL TABLE** / **WRITE** as required for your principal.
 -- 3. Catalog **mta_rtransit** must already exist with a valid storage root (UI or
 --    CREATE CATALOG ... MANAGED LOCATION).
@@ -27,15 +27,18 @@
 --
 -- =============================================================================
 
+-- Catalog parameter (set by DABs or default to dev)
+CREATE WIDGET TEXT catalog DEFAULT "mta_rtransit_dev";
+
 -- Schemas ---------------------------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS mta_rtransit.bronze COMMENT 'Raw / immutable landing';
-CREATE SCHEMA IF NOT EXISTS mta_rtransit.silver COMMENT 'Conformed, deduped, typed';
-CREATE SCHEMA IF NOT EXISTS mta_rtransit.gold COMMENT 'Marts & KPIs for BI / Genie';
+CREATE SCHEMA IF NOT EXISTS ${catalog}.bronze COMMENT 'Raw / immutable landing';
+CREATE SCHEMA IF NOT EXISTS ${catalog}.silver COMMENT 'Conformed, deduped, typed';
+CREATE SCHEMA IF NOT EXISTS ${catalog}.gold COMMENT 'Marts & KPIs for BI / Genie';
 
 -- -----------------------------------------------------------------------------
 -- Bronze — raw fact stream
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.gtfs_rt_events (
+CREATE TABLE IF NOT EXISTS ${catalog}.bronze.gtfs_rt_events (
   id STRING COMMENT 'Stable doc id (hash)',
   route_id STRING,
   source STRING COMMENT 'e.g. mta_gtfs_rt',
@@ -48,13 +51,13 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.gtfs_rt_events (
   lake_ingest_ts TIMESTAMP COMMENT 'When row landed in Delta (set in notebook)'
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/bronze/gtfs_rt_events'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/bronze/gtfs_rt_events'
 COMMENT 'Bronze: high-churn trip updates';
 
 -- -----------------------------------------------------------------------------
 -- Bronze — raw Event Hubs capture
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.eventhub_gtfs_raw (
+CREATE TABLE IF NOT EXISTS ${catalog}.bronze.eventhub_gtfs_raw (
   sequence_number BIGINT,
   offset STRING,
   enqueued_time TIMESTAMP,
@@ -62,13 +65,13 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.eventhub_gtfs_raw (
   bronze_ingest_ts TIMESTAMP
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/bronze/eventhub_gtfs_raw'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/bronze/eventhub_gtfs_raw'
 COMMENT 'Bronze: append-only Event Hubs messages';
 
 -- -----------------------------------------------------------------------------
 -- Bronze — route / reference snapshots
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.dim_route_ref (
+CREATE TABLE IF NOT EXISTS ${catalog}.bronze.dim_route_ref (
   route_id STRING,
   snapshot_date DATE,
   payload STRING COMMENT 'JSON snapshot as text',
@@ -76,13 +79,13 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.bronze.dim_route_ref (
   ingested_at TIMESTAMP
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/bronze/dim_route_ref'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/bronze/dim_route_ref'
 COMMENT 'Bronze: route reference snapshots';
 
 -- -----------------------------------------------------------------------------
 -- Silver — fact trip-delay events
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.silver.fact_trip_delay_event (
+CREATE TABLE IF NOT EXISTS ${catalog}.silver.fact_trip_delay_event (
   event_sk STRING COMMENT 'Surrogate key',
   route_id STRING NOT NULL,
   trip_id STRING,
@@ -92,13 +95,13 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.silver.fact_trip_delay_event (
   is_valid BOOLEAN
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/silver/fact_trip_delay_event'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/silver/fact_trip_delay_event'
 COMMENT 'Silver: one row per logical trip update event';
 
 -- -----------------------------------------------------------------------------
 -- Silver — route dimension
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.silver.dim_route (
+CREATE TABLE IF NOT EXISTS ${catalog}.silver.dim_route (
   route_id STRING NOT NULL,
   route_short_name STRING,
   route_long_name STRING,
@@ -107,13 +110,13 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.silver.dim_route (
   effective_to DATE
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/silver/dim_route'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/silver/dim_route'
 COMMENT 'Silver: route attributes';
 
 -- -----------------------------------------------------------------------------
 -- Gold — daily KPI mart (grain: route + day)
 -- -----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS mta_rtransit.gold.route_delay_kpi_daily (
+CREATE TABLE IF NOT EXISTS ${catalog}.gold.route_delay_kpi_daily (
   kpi_date DATE NOT NULL,
   route_id STRING NOT NULL,
   trip_update_cnt BIGINT,
@@ -121,14 +124,14 @@ CREATE TABLE IF NOT EXISTS mta_rtransit.gold.route_delay_kpi_daily (
   p95_delay_sec DOUBLE
 )
 USING DELTA
-LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/gold/route_delay_kpi_daily'
+LOCATION 'abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/${catalog}/gold/route_delay_kpi_daily'
 COMMENT 'Gold: daily delay KPIs by route';
 
 -- -----------------------------------------------------------------------------
 -- Grants (optional)
 -- -----------------------------------------------------------------------------
--- GRANT USE SCHEMA ON SCHEMA mta_rtransit.gold TO `analysts`;
--- GRANT SELECT ON TABLE mta_rtransit.gold.route_delay_kpi_daily TO `analysts`;
+-- GRANT USE SCHEMA ON SCHEMA ${catalog}.gold TO `analysts`;
+-- GRANT SELECT ON TABLE ${catalog}.gold.route_delay_kpi_daily TO `analysts`;
 
 
 -- COMMAND ----------

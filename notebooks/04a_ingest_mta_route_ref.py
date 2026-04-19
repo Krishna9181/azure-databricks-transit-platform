@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # DBTITLE 1,Overview
 # MAGIC %md
 # MAGIC ## 04a — Ingest MTA route reference (`routes.txt` → Bronze)
@@ -16,7 +20,7 @@
 # COMMAND ----------
 
 # DBTITLE 1,Config
-BRONZE_TABLE = "mta_rtransit.bronze.dim_route_ref"
+BRONZE_TABLE = f"{catalog}.bronze.dim_route_ref"
 GTFS_ZIP_URL = "http://web.mta.info/developers/data/nyct/subway/google_transit.zip"
 
 # COMMAND ----------
@@ -103,6 +107,6 @@ else:
 # MAGIC        get_json_object(payload, '$.route_short_name') AS short_name,
 # MAGIC        get_json_object(payload, '$.route_long_name')  AS long_name,
 # MAGIC        get_json_object(payload, '$.route_type')        AS gtfs_type
-# MAGIC FROM   mta_rtransit.bronze.dim_route_ref
-# MAGIC WHERE  snapshot_date = (SELECT MAX(snapshot_date) FROM mta_rtransit.bronze.dim_route_ref)
+# MAGIC FROM   {catalog}.bronze.dim_route_ref
+# MAGIC WHERE  snapshot_date = (SELECT MAX(snapshot_date) FROM {catalog}.bronze.dim_route_ref)
 # MAGIC ORDER  BY route_id

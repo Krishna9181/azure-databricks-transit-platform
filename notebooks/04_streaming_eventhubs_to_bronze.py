@@ -1,4 +1,8 @@
 # Databricks notebook source
+
+# -- Catalog parameter (set by DABs or default to dev) --
+dbutils.widgets.text("catalog", "mta_rtransit_dev")
+catalog = dbutils.widgets.get("catalog")
 # MAGIC %md
 # MAGIC ## 04 — Streaming: Event Hubs → `bronze.eventhub_gtfs_raw`
 # MAGIC Consumes JSON bodies produced by **`01`** (same canonical document per message).
@@ -42,8 +46,8 @@ print("✓ Application Insights configured → customEvents table (streaming)")
 EVENTHUB_CONN = dbutils.secrets.get("mta-kv", "eventhub-connection-string")
 
 # v3: fresh checkpoint for foreachBatch sink (incompatible with v2 writeStream.toTable checkpoint)
-CHECKPOINT = "abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/mta_rtransit/checkpoints/eh_gtfs_raw_v3"
-BRONZE_EH_TABLE = "mta_rtransit.bronze.eventhub_gtfs_raw"
+CHECKPOINT = f"abfss://demo@adlsgen2deportfolioeus.dfs.core.windows.net/{catalog}/checkpoints/eh_gtfs_raw_v3"
+BRONZE_EH_TABLE = f"{catalog}.bronze.eventhub_gtfs_raw"
 
 # COMMAND ----------
 
@@ -140,7 +144,7 @@ query.awaitTermination()
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from mta_rtransit.bronze.eventhub_gtfs_raw
+# MAGIC select * from {catalog}.bronze.eventhub_gtfs_raw
 
 # COMMAND ----------
 
