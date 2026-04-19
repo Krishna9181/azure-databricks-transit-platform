@@ -101,6 +101,14 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
+        - task_key: sql_export
+          depends_on:
+            - task_key: gold_kpi_daily
+          notebook_task:
+            notebook_path: ./notebooks/09_gold_to_azure_sql.py
+            base_parameters:
+              catalog: ${var.catalog}
+          existing_cluster_id: ${var.cluster_id}
       email_notifications:
         on_failure:
           - ${var.email_notifications}
