@@ -181,15 +181,15 @@ resources:
       photon: true
       channel: PREVIEW
       libraries:
-        - file:
+        - notebook:
             path: ./dlt/transformations/eventhub_raw.py
-        - file:
+        - notebook:
             path: ./dlt/transformations/cosmos_events.py
-        - file:
+        - notebook:
             path: ./dlt/transformations/fact_trip_delay_event.py
-        - file:
+        - notebook:
             path: ./dlt/transformations/dim_route.py
-        - file:
+        - notebook:
             path: ./dlt/transformations/route_delay_kpi_daily.py
-        - file:
+        - notebook:
             path: ./dlt/transformations/route_delay_kpi_enriched.py
