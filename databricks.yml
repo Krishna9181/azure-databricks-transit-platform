@@ -6,7 +6,7 @@ workspace:
 
 variables:
   catalog:
-    default: mta_rtransit
+    default: mta_rtransit_dev
   email_notifications:
     default: saikrishnareddypoluri26@outlook.com
   cluster_id:
@@ -17,7 +17,8 @@ targets:
     mode: development
     default: true
     variables:
-      catalog: mta_rtransit
+      catalog: mta_rtransit_dev
+
   prod:
     mode: production
     variables:
