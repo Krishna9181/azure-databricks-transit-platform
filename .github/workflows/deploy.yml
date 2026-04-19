@@ -24,8 +24,10 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - name: Set Terraform path
-        run: echo "DATABRICKS_TF_EXEC_PATH=$(which terraform)" >> $GITHUB_ENV
+      - name: Set Terraform environment
+        run: |
+          echo "DATABRICKS_TF_EXEC_PATH=$(which terraform)" >> $GITHUB_ENV
+          echo "DATABRICKS_TF_VERSION=$(terraform version -json | jq -r .terraform_version)" >> $GITHUB_ENV
 
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
