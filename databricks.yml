@@ -21,7 +21,8 @@ targets:
 
   prod:
     mode: production
-    root_path: /Shared/azure-databricks-transit-platform/${bundle.target}
+    workspace:
+      root_path: /Shared/azure-databricks-transit-platform/${bundle.target}
     variables:
       catalog: mta_rtransit
     run_as:
@@ -62,7 +63,7 @@ resources:
 
     # ---------------------------------------------------------------
     # Daily batch pipeline (6 AM ET)
-    # DAG: 03 → 04a → 05 → 06 → 07 → 09
+    # DAG: 03 -> 04a -> 05 -> 06 -> 07 -> 09
     # ---------------------------------------------------------------
     mta_daily_batch:
       name: "MTA Transit Pipeline - Daily Batch"
