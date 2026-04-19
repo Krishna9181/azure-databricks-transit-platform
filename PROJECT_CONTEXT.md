@@ -247,6 +247,14 @@ Runs weekly (Sunday 2 AM ET) against all 7 EXTERNAL tables. DLT managed tables a
 
 ---
 
+## Documentation
+
+- **Blog Post**: `docs/MEDIUM_BLOG_POST.md` — full architecture walkthrough with Mermaid diagrams (for Medium publication)
+- **README**: Professional README with Mermaid diagrams rendered natively by GitHub
+- **PROJECT_CONTEXT.md**: This file — detailed project documentation for contributors
+
+---
+
 ## Design Decisions
 
 1. **External tables on ADLS** — full control over storage layout, survives catalog drops
@@ -272,4 +280,6 @@ Runs weekly (Sunday 2 AM ET) against all 7 EXTERNAL tables. DLT managed tables a
 | Phase 3.5 | Azure SQL (Gold to Azure SQL export via JDBC) |
 | Phase 3.6 | DLT Pipeline (Lakeflow SDP with expectations, Append Flows, serverless) |
 | Phase 3.7 | Table Optimization (OPTIMIZE, VACUUM, liquid clustering, ANALYZE) |
+| Phase 3.8 | Workspace cleanup, professional README with Mermaid diagrams, dashboard to Git |
+| Phase 3.9 | Medium blog post, documentation, cost shutdown |
 | Phase 4 | ML and Advanced Analytics (upcoming — delay prediction, MLflow, Model Serving) |
