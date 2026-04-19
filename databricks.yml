@@ -3,7 +3,6 @@ bundle:
 
 workspace:
   host: https://adb-7405613547805720.0.azuredatabricks.net
-  root_path: /Workspace/Users/saikrishnareddypoluri26@outlook.com/.bundle/${bundle.name}/${bundle.target}
 
 variables:
   catalog:
@@ -22,6 +21,7 @@ targets:
 
   prod:
     mode: production
+    root_path: /Shared/azure-databricks-transit-platform/${bundle.target}
     variables:
       catalog: mta_rtransit
     run_as:
@@ -29,6 +29,9 @@ targets:
 
 resources:
   jobs:
+    # ---------------------------------------------------------------
+    # Always-on ingestion jobs (PAUSED by default)
+    # ---------------------------------------------------------------
     mta_continuous_api_poll:
       name: "MTA Ingestion - Continuous API Poll"
       continuous:
@@ -57,6 +60,10 @@ resources:
         on_failure:
           - ${var.email_notifications}
 
+    # ---------------------------------------------------------------
+    # Daily batch pipeline (6 AM ET)
+    # DAG: 03 → 04a → 05 → 06 → 07 → 09
+    # ---------------------------------------------------------------
     mta_daily_batch:
       name: "MTA Transit Pipeline - Daily Batch"
       schedule:
@@ -101,7 +108,7 @@ resources:
             base_parameters:
               catalog: ${var.catalog}
           existing_cluster_id: ${var.cluster_id}
-        - task_key: sql_export
+        - task_key: gold_to_azure_sql
           depends_on:
             - task_key: gold_kpi_daily
           notebook_task:
@@ -120,6 +127,9 @@ resources:
             op: GREATER_THAN
             value: 1800
 
+    # ---------------------------------------------------------------
+    # Health monitor (every 6 hours)
+    # ---------------------------------------------------------------
     mta_health_monitor:
       name: "MTA Pipeline Health Monitor"
       schedule:
@@ -136,3 +146,49 @@ resources:
       email_notifications:
         on_failure:
           - ${var.email_notifications}
+
+    # ---------------------------------------------------------------
+    # Weekly table maintenance (Sunday 2 AM ET)
+    # OPTIMIZE + VACUUM + liquid clustering + ANALYZE
+    # ---------------------------------------------------------------
+    mta_table_maintenance:
+      name: "MTA Delta Table Maintenance - Weekly"
+      schedule:
+        quartz_cron_expression: "0 0 2 ? * SUN *"
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: delta_maintenance
+          notebook_task:
+            notebook_path: ./notebooks/10_delta_table_maintenance.py
+            base_parameters:
+              catalog: ${var.catalog}
+          existing_cluster_id: ${var.cluster_id}
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}
+
+  # ---------------------------------------------------------------
+  # DLT Pipeline (Lakeflow Spark Declarative Pipeline)
+  # Serverless, triggered mode, reads from existing bronze tables
+  # ---------------------------------------------------------------
+  pipelines:
+    mta_dlt_medallion:
+      name: "MTA Transit - DLT Medallion Pipeline"
+      catalog: ${var.catalog}
+      target: dlt
+      photon: true
+      channel: PREVIEW
+      libraries:
+        - file:
+            path: ./dlt/transformations/eventhub_raw.py
+        - file:
+            path: ./dlt/transformations/cosmos_events.py
+        - file:
+            path: ./dlt/transformations/fact_trip_delay_event.py
+        - file:
+            path: ./dlt/transformations/dim_route.py
+        - file:
+            path: ./dlt/transformations/route_delay_kpi_daily.py
+        - file:
+            path: ./dlt/transformations/route_delay_kpi_enriched.py
