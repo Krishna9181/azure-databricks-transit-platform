@@ -14,15 +14,6 @@ End-to-end **Azure Data Engineering** platform ingesting NYC MTA real-time subwa
 
 ## 🏗️ Architecture Overview
 
-High-level Azure reference architecture (editable source and draw.io XML are in the repo root):
-
-![Azure architecture — MTA GTFS-RT pipeline](mta-transit-platform-architecture.png)
-
-| Asset | Purpose |
-|-------|---------|
-| [`mta-transit-platform-architecture.png`](mta-transit-platform-architecture.png) | PNG for README and documentation |
-| [`mta-transit-platform-architecture.drawio`](mta-transit-platform-architecture.drawio) | Source diagram (open in [diagrams.net](https://app.diagrams.net/) or VS Code Draw.io extension) |
-
 ```mermaid
 flowchart TB
     subgraph SOURCES["🌐 Data Sources"]
@@ -260,9 +251,6 @@ gantt
 
 ```
 azure-databricks-transit-platform/
-│
-├── mta-transit-platform-architecture.drawio   # Azure reference architecture (diagrams.net)
-├── mta-transit-platform-architecture.png      # Exported image for README / docs
 │
 ├── .github/workflows/
 │   └── deploy.yml                          # CI/CD: main → bundle deploy -t prod
