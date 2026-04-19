@@ -169,6 +169,25 @@ resources:
         on_failure:
           - ${var.email_notifications}
 
+    # ---------------------------------------------------------------
+    # DLT Pipeline refresh (Daily 7 AM ET — after batch completes)
+    # Incremental refresh of DLT medallion tables (serverless)
+    # ---------------------------------------------------------------
+    mta_dlt_refresh:
+      name: "MTA DLT Medallion Pipeline - Daily Refresh"
+      schedule:
+        quartz_cron_expression: "0 0 7 * * ?"
+        timezone_id: America/New_York
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: dlt_incremental_refresh
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.mta_dlt_medallion.id}
+            full_refresh: false
+      email_notifications:
+        on_failure:
+          - ${var.email_notifications}
+
   # ---------------------------------------------------------------
   # DLT Pipeline (Lakeflow Spark Declarative Pipeline)
   # Serverless, triggered mode, reads from existing bronze tables
