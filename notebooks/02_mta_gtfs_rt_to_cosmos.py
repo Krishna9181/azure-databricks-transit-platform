@@ -321,6 +321,3 @@ else:
             print("[mta_ingest] cycle failed; sleeping then retry", flush=True)
             traceback.print_exc()
         time.sleep(INGEST_INTERVAL_SEC)
-
-# COMMAND ----------
-

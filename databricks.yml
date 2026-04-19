@@ -216,3 +216,15 @@ resources:
             path: ./dlt/transformations/route_delay_kpi_daily.py
         - notebook:
             path: ./dlt/transformations/route_delay_kpi_enriched.py
+
+  # ---------------------------------------------------------------
+  # AI/BI Dashboard (Lakeview)
+  # Deployed from .lvdash.json — edit in Databricks UI, export to Git
+  # ---------------------------------------------------------------
+  dashboards:
+    mta_transit_operations:
+      display_name: "MTA Transit Pipeline Operations"
+      file_path: ./dashboards/mta_transit_pipeline_operations.lvdash.json
+      permissions:
+        - level: CAN_VIEW
+          user_name: saikrishnareddypoluri26@outlook.com
