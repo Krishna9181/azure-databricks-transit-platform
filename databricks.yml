@@ -3,6 +3,7 @@ bundle:
 
 workspace:
   host: https://adb-7405613547805720.0.azuredatabricks.net
+  root_path: /Workspace/Users/saikrishnareddypoluri26@outlook.com/.bundle/${bundle.name}/${bundle.target}
 
 variables:
   catalog:
@@ -21,7 +22,6 @@ targets:
 
   prod:
     mode: production
-    root_path: /Workspace/Users/saikrishnareddypoluri26@outlook.com/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: mta_rtransit
     run_as:
