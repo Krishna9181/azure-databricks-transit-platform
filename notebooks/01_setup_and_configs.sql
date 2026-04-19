@@ -132,7 +132,3 @@ COMMENT 'Gold: daily delay KPIs by route';
 -- -----------------------------------------------------------------------------
 -- GRANT USE SCHEMA ON SCHEMA ${catalog}.gold TO `analysts`;
 -- GRANT SELECT ON TABLE ${catalog}.gold.route_delay_kpi_daily TO `analysts`;
-
-
--- COMMAND ----------
-

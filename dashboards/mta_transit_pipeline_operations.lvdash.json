@@ -1,0 +1,427 @@
+{
+  "datasets": [
+    {
+      "name": "silver_events",
+      "displayName": "Silver Valid Events",
+      "queryLines": [
+        "SELECT\n",
+        "  *\n",
+        "FROM\n",
+        "  mta_rtransit.silver.fact_trip_delay_event\n",
+        "WHERE\n",
+        "  is_valid = true"
+      ],
+      "columns": [
+        {
+          "displayName": "hour_utc",
+          "description": "Hour of day (UTC) extracted from event timestamp",
+          "expression": "HOUR(`event_ts`)"
+        }
+      ]
+    },
+    {
+      "name": "gold_kpi",
+      "displayName": "Gold Route KPIs",
+      "queryLines": [
+        "SELECT\n",
+        "  *\n",
+        "FROM\n",
+        "  mta_rtransit.gold.route_delay_kpi_enriched"
+      ],
+      "columns": [
+        {
+          "displayName": "Avg Delay (s)",
+          "description": "Avg delay with N/A fallback",
+          "expression": "COALESCE(CAST(ROUND(`avg_delay_sec`, 1) AS STRING), 'N/A')"
+        },
+        {
+          "displayName": "P95 Delay (s)",
+          "description": "P95 delay with N/A fallback",
+          "expression": "COALESCE(CAST(ROUND(`p95_delay_sec`, 1) AS STRING), 'N/A')"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "0ab9ecc8",
+      "displayName": "Page 1",
+      "layout": [
+        {
+          "widget": {
+            "name": "total_trip_updates",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_kpi",
+                  "fields": [
+                    {
+                      "name": "sum(trip_update_cnt)",
+                      "expression": "SUM(`trip_update_cnt`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total Trip Updates",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(trip_update_cnt)",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 0
+                    },
+                    "abbreviation": "compact"
+                  },
+                  "displayName": "Total Updates"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "active_routes",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_kpi",
+                  "fields": [
+                    {
+                      "name": "countdistinct(route_id)",
+                      "expression": "COUNT(DISTINCT `route_id`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Active Routes",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "countdistinct(route_id)",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 0
+                    },
+                    "abbreviation": "none"
+                  },
+                  "displayName": "Active Routes"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "latest_data",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_kpi",
+                  "fields": [
+                    {
+                      "name": "max(kpi_date)",
+                      "expression": "MAX(`kpi_date`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Latest Data",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "max(kpi_date)",
+                  "displayName": "Latest Date"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "trip_updates_by_route",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_kpi",
+                  "fields": [
+                    {
+                      "name": "route_short_name",
+                      "expression": "`route_short_name`"
+                    },
+                    {
+                      "name": "sum(trip_update_cnt)",
+                      "expression": "SUM(`trip_update_cnt`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Trip Updates by Route",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "route_short_name",
+                  "displayName": "Route",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(trip_update_cnt)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Trip Updates",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "route_short_name",
+                  "legend": {
+                    "hide": true
+                  },
+                  "displayName": "Route",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "hourly_volume",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "silver_events",
+                  "fields": [
+                    {
+                      "name": "route_id",
+                      "expression": "`route_id`"
+                    },
+                    {
+                      "name": "hour_utc",
+                      "expression": "`hour_utc`"
+                    },
+                    {
+                      "name": "count(event_sk)",
+                      "expression": "COUNT(`event_sk`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Hourly Event Volume by Route",
+                "showTitle": true
+              },
+              "mark": {
+                "layout": "stack"
+              },
+              "widgetType": "area",
+              "encodings": {
+                "x": {
+                  "fieldName": "hour_utc",
+                  "displayName": "Hour (UTC)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "count(event_sk)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Events",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "route_id",
+                  "legend": {
+                    "position": "right"
+                  },
+                  "displayName": "Route",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "route_detail_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_kpi",
+                  "fields": [
+                    {
+                      "name": "route_short_name",
+                      "expression": "`route_short_name`"
+                    },
+                    {
+                      "name": "route_long_name",
+                      "expression": "`route_long_name`"
+                    },
+                    {
+                      "name": "route_type",
+                      "expression": "`route_type`"
+                    },
+                    {
+                      "name": "sum(trip_update_cnt)",
+                      "expression": "SUM(`trip_update_cnt`)"
+                    },
+                    {
+                      "name": "Avg Delay (s)",
+                      "expression": "`Avg Delay (s)`"
+                    },
+                    {
+                      "name": "P95 Delay (s)",
+                      "expression": "`P95 Delay (s)`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Route KPI Detail",
+                "showTitle": true
+              },
+              "rowsPerPage": 25,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "route_short_name",
+                    "displayName": "Route"
+                  },
+                  {
+                    "fieldName": "route_long_name",
+                    "displayName": "Route Name"
+                  },
+                  {
+                    "fieldName": "route_type",
+                    "displayName": "Type"
+                  },
+                  {
+                    "fieldName": "sum(trip_update_cnt)",
+                    "displayName": "Trip Updates"
+                  },
+                  {
+                    "fieldName": "Avg Delay (s)",
+                    "displayName": "Avg Delay (s)"
+                  },
+                  {
+                    "fieldName": "P95 Delay (s)",
+                    "displayName": "P95 Delay (s)"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
