@@ -22,7 +22,7 @@ jobs:
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
         with:
-          version: 0.236/2.0
+          version: 0.232.0
 
       - name: Validate bundle
         run: databricks bundle validate -t prod
