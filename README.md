@@ -371,6 +371,3 @@ databricks bundle deploy -t prod   # Production (/Shared/)
 
 ---
 
-## 📝 License
-
-This project is for portfolio/educational purposes.
